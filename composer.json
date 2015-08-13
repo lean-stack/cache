@@ -1,0 +1,27 @@
+{
+    "name": "lean-stack/cache",
+    "description": "PSR-6 cache implementation",
+    "type": "library",
+    "license": "ISC",
+    "authors": [
+        {
+            "name": "Micha Alt",
+            "email": "lean@michael-alt.info"
+        }
+    ],
+    "provide": {
+        "psr/cache-implementation": "1.0.0"
+    },
+    "replace": {
+        "psr/cache": "1.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Psr\\Cache\\": "psr"
+        }
+    },
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^4.8"
+    }
+}
