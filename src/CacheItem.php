@@ -4,8 +4,53 @@ namespace Lean\Cache;
 
 use Psr\Cache\CacheItemInterface;
 
+abstract class CacheItemState {
+    const DETACHED = 0;
+    const ATTACHED = 1;
+    const MODIFIED = 2;
+}
+
 class CacheItem implements CacheItemInterface
 {
+    /** @var \BasePhpFastCache */
+    protected $_pool;
+
+    /** @var string */
+    protected $_key;
+
+    /** @var mixed */
+    protected $_value;
+
+    /** @var int */
+    protected $_state;
+
+    /** @var bool|null */
+    protected $_hit;
+
+    /**
+     * CacheItem constructor.
+     *
+     * @param string $key
+     * @param \BasePhpFastCache $pool
+     *
+     * @throws InvalidArgumentException
+     *
+     * @codeCoverageIgnore
+     */
+    public function __construct($key, \BasePhpFastCache $pool)
+    {
+        if ($key === null) {
+            throw new InvalidArgumentException('Cache key may not be null');
+        }
+        if ($pool === null) {
+            throw new InvalidArgumentException('You must provide the current pool');
+        }
+
+        $this->_key = $key;
+        $this->_pool = $pool;
+        $this->_state = CacheItemState::DETACHED;
+    }
+
     /**
      * Returns the key for the current cache item.
      *
@@ -17,7 +62,7 @@ class CacheItem implements CacheItemInterface
      */
     public function getKey()
     {
-        // TODO: Implement getKey() method.
+        return $this->_key;
     }
 
     /**
@@ -34,7 +79,10 @@ class CacheItem implements CacheItemInterface
      */
     public function get()
     {
-        // TODO: Implement get() method.
+        if ($this->_state == CacheItemState::DETACHED)
+            $this->_loadValue();
+
+        return $this->_value;
     }
 
     /**
@@ -57,7 +105,8 @@ class CacheItem implements CacheItemInterface
      */
     public function set($value)
     {
-        // TODO: Implement set() method.
+        $this->_value = $value;
+        $this->_state = CacheItemState::MODIFIED;
     }
 
     /**
@@ -71,7 +120,11 @@ class CacheItem implements CacheItemInterface
      */
     public function isHit()
     {
-        // TODO: Implement isHit() method.
+        if ($this->_state == CacheItemState::DETACHED) {
+            $this->_loadValue();
+        }
+
+        return $this->_hit;
     }
 
     /**
@@ -86,7 +139,7 @@ class CacheItem implements CacheItemInterface
      */
     public function exists()
     {
-        // TODO: Implement exists() method.
+        return $this->_pool->isExisting($this->getKey());
     }
 
     /**
@@ -134,5 +187,17 @@ class CacheItem implements CacheItemInterface
     public function getExpiration()
     {
         // TODO: Implement getExpiration() method.
+    }
+
+    /**
+     * Loads the value from the cache pool into the item store
+     *
+     * Sideeffect: ensures a valid hit state
+     */
+    private function _loadValue()
+    {
+        $this->_value = $this->_pool->get($this->_key);
+        $this->_hit = $this->_pool->isExisting($this->_key);
+        $this->_state = CacheItemState::ATTACHED;
     }
 }

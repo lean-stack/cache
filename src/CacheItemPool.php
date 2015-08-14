@@ -7,6 +7,27 @@ use Psr\Cache\CacheItemPoolInterface;
 
 class CacheItemPool implements CacheItemPoolInterface
 {
+    /** @var \phpFastCache */
+    protected $_cache;
+
+    /**
+     * The driver instance, not public available, but provided here for better code completion
+     *
+     * @var \BasePhpFastCache */
+    protected $_instance;
+
+    /**
+     * CacheItemPool constructor.
+     *
+     * @param string $storage
+     * @param array  $options
+     */
+    public function __construct($storage = '', $options = array())
+    {
+        $this->_cache = new \phpFastCache($storage,$options);
+        $this->_instance = $this->_cache->instance;
+    }
+
     /**
      * Returns a Cache Item representing the specified key.
      *
@@ -25,7 +46,8 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
-        // TODO: Implement getItem() method.
+        $cacheItem = new CacheItem($key,$this->_instance);
+        return $cacheItem;
     }
 
     /**
@@ -81,7 +103,7 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
-        // TODO: Implement save() method.
+        $this->_instance->set($item->getKey(),$item->get());
     }
 
     /**
