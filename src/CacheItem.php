@@ -4,7 +4,8 @@ namespace Lean\Cache;
 
 use Psr\Cache\CacheItemInterface;
 
-abstract class CacheItemState {
+abstract class CacheItemState
+{
     const DETACHED = 0;
     const ATTACHED = 1;
     const MODIFIED = 2;
@@ -27,10 +28,16 @@ class CacheItem implements CacheItemInterface
     /** @var bool|null */
     protected $_hit;
 
+    /** @var int */
+    protected $_ttl;
+
+    /** @var \DateTime */
+    protected $_expiresAt;
+
     /**
      * CacheItem constructor.
      *
-     * @param string $key
+     * @param string            $key
      * @param \BasePhpFastCache $pool
      *
      * @throws InvalidArgumentException
@@ -79,8 +86,9 @@ class CacheItem implements CacheItemInterface
      */
     public function get()
     {
-        if ($this->_state == CacheItemState::DETACHED)
+        if ($this->_state == CacheItemState::DETACHED) {
             $this->_loadValue();
+        }
 
         return $this->_value;
     }
@@ -156,7 +164,9 @@ class CacheItem implements CacheItemInterface
      */
     public function expiresAt($expiration)
     {
-        // TODO: Implement expiresAt() method.
+        $this->_expiresAt = $expiration;
+
+        return $this;
     }
 
     /**
@@ -172,7 +182,14 @@ class CacheItem implements CacheItemInterface
      */
     public function expiresAfter($time)
     {
-        // TODO: Implement expiresAfter() method.
+        if ($time instanceof \DateInterval) {
+            $zero = new \DateTime('@0');
+            $this->_ttl = $zero->add($time)->getTimestamp();
+        } else {
+            $this->_ttl = $time;
+        }
+
+        return $this;
     }
 
     /**
@@ -186,11 +203,24 @@ class CacheItem implements CacheItemInterface
      */
     public function getExpiration()
     {
-        // TODO: Implement getExpiration() method.
+        if ($this->_expiresAt !== null) {
+            return $this->_expiresAt;
+        }
+
+        if ($this->_ttl !== null) {
+            $then = new \DateTime('now');
+            $then->modify('+'.$this->_ttl.' sec');
+
+            return $then;
+        }
+
+        $then = new \DateTime('now + 5 year');
+
+        return $then;
     }
 
     /**
-     * Loads the value from the cache pool into the item store
+     * Loads the value from the cache pool into the item store.
      *
      * Sideeffect: ensures a valid hit state
      */

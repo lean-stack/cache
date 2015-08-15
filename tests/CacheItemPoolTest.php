@@ -13,11 +13,10 @@ class CacheItemPoolTest extends PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $options = \phpFastCache::$config;
-        $options['path'] = __DIR__ . '/tmp';
+        $options['path'] = __DIR__.'/tmp';
 
-        if( !file_exists($options['path'])) {
+        if (!file_exists($options['path'])) {
             mkdir($options['path']);
-
         }
 
         $this->cache = new CacheItemPool('auto', $options);
@@ -27,7 +26,7 @@ class CacheItemPoolTest extends PHPUnit_Framework_TestCase
     {
         $key = uniqid();
         $item = $this->cache->getItem($key);
-        $this->assertInstanceOf(\Psr\Cache\CacheItemInterface::class,$item);
+        $this->assertInstanceOf(\Psr\Cache\CacheItemInterface::class, $item);
     }
 
     public function testItemNotExisting()
@@ -48,7 +47,7 @@ class CacheItemPoolTest extends PHPUnit_Framework_TestCase
         $item = $this->cache->getItem($key);
         $value = $item->get();
 
-        $this->assertEquals(17,$value);
+        $this->assertEquals(17, $value);
     }
 
     public function testExistingItemHasHit()
@@ -98,4 +97,62 @@ class CacheItemPoolTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($item->isHit());
     }
 
+    public function testDefaultExpiration()
+    {
+        $key = uniqid();
+        $item = $this->cache->getItem($key);
+        $this->assertTrue($item->getExpiration() > new DateTime());
+    }
+
+    public function testSettingExpirationDate()
+    {
+        $key = uniqid();
+        $item = $this->cache->getItem($key);
+        $expiresAt = new DateTime('now + 10 min');
+        $item->expiresAt($expiresAt);
+        $this->assertEquals($expiresAt, $item->getExpiration());
+    }
+
+    public function testSettingExpirationSeconds()
+    {
+        $key = uniqid();
+        $item = $this->cache->getItem($key);
+        $item->expiresAfter(600);
+        $then = new DateTime('now + 600 sec');
+        $this->assertEquals($then, $item->getExpiration());
+    }
+
+    public function testSettingExpirationDateInterval()
+    {
+        $key = uniqid();
+        $item = $this->cache->getItem($key);
+        $interval = new DateInterval('PT10M');
+        $then = new DateTime('now + 600 sec');
+        $item->expiresAfter($interval);
+        $this->assertEquals($then, $item->getExpiration());
+    }
+
+    public function testReadingExpiredItem()
+    {
+        $key = uniqid();
+        $item = $this->cache->getItem($key);
+        $item->set(17);
+        $item->expiresAfter(3);
+        $this->cache->save($item);
+        sleep(5);
+        $item = $this->cache->getItem($key);
+        $this->assertNull($item->get());
+    }
+
+    public function testReadingNonExpiredItem()
+    {
+        $key = uniqid();
+        $item = $this->cache->getItem($key);
+        $item->set(17);
+        $item->expiresAfter(5);
+        $this->cache->save($item);
+        sleep(3);
+        $item = $this->cache->getItem($key);
+        $this->assertEquals(17, $item->get());
+    }
 }

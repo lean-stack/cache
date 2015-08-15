@@ -65,6 +65,7 @@ class CacheItemPool implements CacheItemPoolInterface
     public function getItems(array $keys = array())
     {
         // TODO: Implement getItems() method.
+        return [];
     }
 
     /**
@@ -76,6 +77,7 @@ class CacheItemPool implements CacheItemPoolInterface
     public function clear()
     {
         // TODO: Implement clear() method.
+        return false;
     }
 
     /**
@@ -90,6 +92,7 @@ class CacheItemPool implements CacheItemPoolInterface
     public function deleteItems(array $keys)
     {
         // TODO: Implement deleteItems() method.
+        return $this;
     }
 
     /**
@@ -103,7 +106,11 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
-        $this->_instance->set($item->getKey(),$item->get());
+        $now = new \DateTime('now');
+        $expiration = $item->getExpiration();
+        $ttl = $expiration->getTimestamp() - $now->getTimestamp();
+        $this->_instance->set($item->getKey(),$item->get(),$ttl);
+        return $this;
     }
 
     /**
@@ -118,6 +125,7 @@ class CacheItemPool implements CacheItemPoolInterface
     public function saveDeferred(CacheItemInterface $item)
     {
         // TODO: Implement saveDeferred() method.
+        return $this;
     }
 
     /**
@@ -129,5 +137,6 @@ class CacheItemPool implements CacheItemPoolInterface
     public function commit()
     {
         // TODO: Implement commit() method.
+        return false;
     }
 }
