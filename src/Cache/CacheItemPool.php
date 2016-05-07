@@ -39,7 +39,10 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
-        // TODO: Implement getItem() method.
+        $this->ensureValidKey($key);
+
+        $item = new CacheItem();
+        return $item;
     }
 
     /**
@@ -112,7 +115,8 @@ class CacheItemPool implements CacheItemPoolInterface
     public function deleteItem($key)
     {
         // TODO: Implement deleteItem() method.
-    }/**
+    }
+    /**
  * Removes multiple items from the pool.
  *
  * @param array $keys
@@ -166,5 +170,17 @@ class CacheItemPool implements CacheItemPoolInterface
     public function commit()
     {
         // TODO: Implement commit() method.
+    }
+
+    /**
+     * Validates a given key according to the PSR-6 rules
+     *
+     * @param string $key
+     * @throws \Lean\Cache\InvalidArgumentException
+     */
+    private function ensureValidKey($key) {
+
+        if( !Utility::isKeyValid($key))
+            throw new \Lean\Cache\InvalidArgumentException('Invalid key');
     }
 }
