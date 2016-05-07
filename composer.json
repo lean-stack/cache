@@ -12,16 +12,13 @@
     "provide": {
         "psr/cache-implementation": "1.0.0"
     },
-    "replace": {
-        "psr/cache": "1.0.0"
-    },
     "autoload": {
         "psr-4": {
-            "Psr\\Cache\\": "psr",
             "Lean\\Cache\\": "src"
         }
     },
     "require": {
+        "psr/cache": "^1.0",
         "phpfastcache/phpfastcache": "^3.0"
     },
     "require-dev": {

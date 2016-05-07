@@ -4,6 +4,7 @@ namespace Lean\Cache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 
 class CacheItemPool implements CacheItemPoolInterface
 {
@@ -138,5 +139,45 @@ class CacheItemPool implements CacheItemPoolInterface
     {
         // TODO: Implement commit() method.
         return false;
+    }
+
+    /**
+     * Confirms if the cache contains specified cache item.
+     *
+     * Note: This method MAY avoid retrieving the cached value for performance reasons.
+     * This could result in a race condition with CacheItemInterface::get(). To avoid
+     * such situation use CacheItemInterface::isHit() instead.
+     *
+     * @param string $key
+     *    The key for which to check existence.
+     *
+     * @throws InvalidArgumentException
+     *   If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
+     *   MUST be thrown.
+     *
+     * @return bool
+     *  True if item exists in the cache, false otherwise.
+     */
+    public function hasItem($key)
+    {
+        // TODO: Implement hasItem() method.
+    }
+
+    /**
+     * Removes the item from the pool.
+     *
+     * @param string $key
+     *   The key for which to delete
+     *
+     * @throws InvalidArgumentException
+     *   If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
+     *   MUST be thrown.
+     *
+     * @return bool
+     *   True if the item was successfully removed. False if there was an error.
+     */
+    public function deleteItem($key)
+    {
+        // TODO: Implement deleteItem() method.
     }
 }
