@@ -19,9 +19,9 @@
     },
     "require": {
         "psr/cache": "^1.0",
-        "phpfastcache/phpfastcache": "^3.0"
+        "phpfastcache/phpfastcache": "^4.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^4.8"
+        "phpunit/phpunit": "^5.3"
     }
 }
