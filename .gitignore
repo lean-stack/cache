@@ -6,3 +6,7 @@ composer.phar
 
 # PhpStorm settings
 .idea/
+
+# Temporary test data
+.tmp/
+
