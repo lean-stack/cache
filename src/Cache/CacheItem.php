@@ -11,10 +11,7 @@ abstract class CacheItemState
 }
 
 /**
- * Class CacheItem
- * @package Lean\Cache
- *
- * CacheItemInterface defines an interface for interacting with objects inside a cache.
+ * Class CacheItem.
  */
 class CacheItem implements CacheItemInterface
 {
@@ -51,7 +48,7 @@ class CacheItem implements CacheItemInterface
      * the higher level callers when needed.
      *
      * @return string
-     *   The key string for this cache item.
+     *                The key string for this cache item.
      */
     public function getKey()
     {
@@ -68,7 +65,7 @@ class CacheItem implements CacheItemInterface
      * differentiate between "null value was found" and "no value was found."
      *
      * @return mixed
-     *   The value corresponding to this cache item's key, or null if not found.
+     *               The value corresponding to this cache item's key, or null if not found.
      */
     public function get()
     {
@@ -82,7 +79,7 @@ class CacheItem implements CacheItemInterface
      * and calling get().
      *
      * @return bool
-     *   True if the request resulted in a cache hit. False otherwise.
+     *              True if the request resulted in a cache hit. False otherwise.
      */
     public function isHit()
     {
@@ -97,14 +94,14 @@ class CacheItem implements CacheItemInterface
      * Library.
      *
      * @param mixed $value
-     *   The serializable value to be stored.
+     *                     The serializable value to be stored.
      *
      * @return static
-     *   The invoked object.
+     *                The invoked object.
      */
     public function set($value)
     {
-        if( $this->_state === CacheItemState::DEFERRED) {
+        if ($this->_state === CacheItemState::DEFERRED) {
             $this->_probablyDeferredValueSet = true;
             $this->_deferred_value = $value;
         } else {
@@ -118,25 +115,26 @@ class CacheItem implements CacheItemInterface
      * Sets the expiration time for this cache item.
      *
      * @param \DateTimeInterface $expiration
-     *   The point in time after which the item MUST be considered expired.
-     *   If null is passed explicitly, a default value MAY be used. If none is set,
-     *   the value should be stored permanently or for as long as the
-     *   implementation allows.
+     *                                       The point in time after which the item MUST be considered expired.
+     *                                       If null is passed explicitly, a default value MAY be used. If none is set,
+     *                                       the value should be stored permanently or for as long as the
+     *                                       implementation allows.
      *
      * @return static
-     *   The called object.
+     *                The called object.
      *
      * @throws InvalidArgumentException
      */
     public function expiresAt($expiration)
     {
-        if( $expiration === null) {
+        if ($expiration === null) {
             $this->_expiry = 0;
         } elseif ($expiration instanceof \DateTimeInterface) {
             $this->_expiry = $expiration->getTimestamp();
         } else {
             throw new InvalidArgumentException('Invalid expiration time.');
         }
+
         return $this;
     }
 
@@ -144,33 +142,36 @@ class CacheItem implements CacheItemInterface
      * Sets the expiration time for this cache item.
      *
      * @param int|\DateInterval $time
-     *   The period of time from the present after which the item MUST be considered
-     *   expired. An integer parameter is understood to be the time in seconds until
-     *   expiration. If null is passed explicitly, a default value MAY be used.
-     *   If none is set, the value should be stored permanently or for as long as the
-     *   implementation allows.
+     *                                The period of time from the present after which the item MUST be considered
+     *                                expired. An integer parameter is understood to be the time in seconds until
+     *                                expiration. If null is passed explicitly, a default value MAY be used.
+     *                                If none is set, the value should be stored permanently or for as long as the
+     *                                implementation allows.
+     *
      * @return static The called object.
-     * The called object.
+     *                The called object.
+     *
      * @throws InvalidArgumentException
      */
     public function expiresAfter($time)
     {
         if ($time === null) {
             $this->_expiry = 0;
-        } elseif ($time instanceof \DateInterval){
+        } elseif ($time instanceof \DateInterval) {
             $now = new \DateTime('now');
             $this->_expiry = $now->add($time)->getTimestamp();
-        } elseif ( is_int($time)) {
+        } elseif (is_int($time)) {
             $now = new \DateTime('now');
             $this->_expiry = $now->modify('+'.$time.' sec')->getTimestamp();
         } else {
             throw new InvalidArgumentException('Invalid expiration time.');
         }
+
         return $this;
     }
 
     /**
-     * Returns the unix timestamp of the expiry
+     * Returns the unix timestamp of the expiry.
      *
      * @return int|null
      */
@@ -188,7 +189,7 @@ class CacheItem implements CacheItemInterface
     }
 
     /**
-     * Sets the hit state
+     * Sets the hit state.
      *
      * @param mixed $isHit
      */
@@ -214,7 +215,7 @@ class CacheItem implements CacheItemInterface
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function isProbablyDeferredValueSet()
     {
@@ -222,7 +223,7 @@ class CacheItem implements CacheItemInterface
     }
 
     /**
-     * @param boolean $probablyDeferredValueSet
+     * @param bool $probablyDeferredValueSet
      */
     public function setProbablyDeferredValueSet($probablyDeferredValueSet)
     {

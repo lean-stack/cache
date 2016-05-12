@@ -13,7 +13,8 @@ class CacheItemPoolTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->_pool = new CacheItemPool(['storage' => 'files', 'path' => dirname(dirname(__DIR__)) . '/.tmp/']);
+        $this->_pool = new CacheItemPool(['storage' => 'auto', 'path' => dirname(dirname(__DIR__)).'/.tmp/']);
+        var_dump($this->_pool); die(1);
     }
 
     public function testClassImplementsInterface()

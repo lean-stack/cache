@@ -5,9 +5,10 @@ namespace Lean\Cache;
 class Utility
 {
     /**
-     * Validates a given key
+     * Validates a given key.
      *
      * @param string $key
+     *
      * @throws InvalidArgumentException
      *
      * Key - A string of at least one character that uniquely identifies a cached item.
@@ -20,12 +21,14 @@ class Utility
      */
     public static function validateKey($key)
     {
-        if( !is_string($key))
+        if (!is_string($key)) {
             throw new InvalidArgumentException(sprintf('Invalid key. Key must be a string, you gave %s.',
                 is_object($key) ? get_class($key) : gettype($key)));
+        }
 
-        $normalized = str_replace(['_','.'], '', $key);
-        if( !ctype_alnum($normalized))
+        $normalized = str_replace(['_', '.'], '', $key);
+        if (!ctype_alnum($normalized)) {
             throw new InvalidArgumentException('Invalid key. Key MUST contain only chars according to PSR-6');
+        }
     }
 }

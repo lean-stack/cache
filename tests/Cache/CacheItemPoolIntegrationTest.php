@@ -4,7 +4,6 @@ namespace Tests\Lean\Cache;
 
 use Cache\IntegrationTests\CachePoolTest;
 use Lean\Cache\CacheItemPool;
-use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
 class CacheItemPoolIntegrationTest extends CachePoolTest
@@ -14,6 +13,6 @@ class CacheItemPoolIntegrationTest extends CachePoolTest
      */
     public function createCachePool()
     {
-        return new CacheItemPool(['storage' => 'files', 'path' => dirname(dirname(__DIR__)) . '/.tmp/']);
+        return new CacheItemPool(['storage' => 'auto', 'path' => dirname(dirname(__DIR__)).'/.tmp/']);
     }
 }

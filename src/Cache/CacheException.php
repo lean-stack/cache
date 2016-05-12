@@ -6,7 +6,6 @@ class CacheException
     extends \Exception
     implements \Psr\Cache\CacheException
 {
-
     /**
      * CacheException constructor.
      */

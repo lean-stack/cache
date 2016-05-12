@@ -8,7 +8,7 @@ use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 
 /**
- * Class CacheItemPool
+ * Class CacheItemPool.
  *
  * CacheItemPool generates CacheItemInterface objects.
  *
@@ -17,8 +17,6 @@ use Psr\Cache\InvalidArgumentException;
  * It is also the primary point of interaction with the entire cache collection.
  * All configuration and initialization of the Pool is left up to an
  * Implementing Library.
- *
- * @package Lean\Cache
  */
 class CacheItemPool implements CacheItemPoolInterface
 {
@@ -31,7 +29,7 @@ class CacheItemPool implements CacheItemPoolInterface
     /**
      * CacheItemPool constructor.
      *
-     * @param array $config
+     * @param array  $config
      * @param string $method
      */
     public function __construct(array $config, $method = 'normal')
@@ -48,28 +46,30 @@ class CacheItemPool implements CacheItemPoolInterface
      * a cache miss. It MUST NOT return null.
      *
      * @param string $key
-     *   The key for which to return the corresponding Cache Item.
+     *                    The key for which to return the corresponding Cache Item.
      *
      * @throws InvalidArgumentException
-     *   If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
-     *   MUST be thrown.
+     *                                  If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
+     *                                  MUST be thrown.
      *
      * @return CacheItemInterface
-     *   The corresponding Cache Item.
+     *                            The corresponding Cache Item.
      */
     public function getItem($key)
     {
         Utility::validateKey($key);
 
-        if( isset($this->_queue[$key])) {
+        if (isset($this->_queue[$key])) {
             return $this->_queue[$key];
         }
 
         $value = null;
         $isHit = $this->_cache->isExisting($key);
-        if( $isHit ) {
+        if ($isHit) {
             $value = $this->_cache->get($key);
-            if( $value instanceof NullObject) $value = null;
+            if ($value instanceof NullObject) {
+                $value = null;
+            }
         }
 
         $item = new CacheItem();
@@ -84,17 +84,17 @@ class CacheItemPool implements CacheItemPoolInterface
      * Returns a traversable set of cache items.
      *
      * @param array $keys
-     * An indexed array of keys of items to retrieve.
+     *                    An indexed array of keys of items to retrieve.
      *
      * @throws InvalidArgumentException
-     *   If any of the keys in $keys are not a legal value a \Psr\Cache\InvalidArgumentException
-     *   MUST be thrown.
+     *                                  If any of the keys in $keys are not a legal value a \Psr\Cache\InvalidArgumentException
+     *                                  MUST be thrown.
      *
      * @return array|\Traversable
-     *   A traversable collection of Cache Items keyed by the cache keys of
-     *   each item. A Cache item will be returned for each key, even if that
-     *   key is not found. However, if no keys are specified then an empty
-     *   traversable MUST be returned instead.
+     *                            A traversable collection of Cache Items keyed by the cache keys of
+     *                            each item. A Cache item will be returned for each key, even if that
+     *                            key is not found. However, if no keys are specified then an empty
+     *                            traversable MUST be returned instead.
      */
     public function getItems(array $keys = array())
     {
@@ -106,6 +106,7 @@ class CacheItemPool implements CacheItemPoolInterface
         foreach ($keys as $key) {
             $items[$key] = $this->getItem($key);
         }
+
         return $items;
     }
 
@@ -117,20 +118,20 @@ class CacheItemPool implements CacheItemPoolInterface
      * such situation use CacheItemInterface::isHit() instead.
      *
      * @param string $key
-     *    The key for which to check existence.
+     *                    The key for which to check existence.
      *
      * @throws InvalidArgumentException
-     *   If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
-     *   MUST be thrown.
+     *                                  If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
+     *                                  MUST be thrown.
      *
      * @return bool
-     *  True if item exists in the cache, false otherwise.
+     *              True if item exists in the cache, false otherwise.
      */
     public function hasItem($key)
     {
         Utility::validateKey($key);
 
-        if( isset($this->_queue[$key])) {
+        if (isset($this->_queue[$key])) {
             return true;
         }
 
@@ -141,12 +142,13 @@ class CacheItemPool implements CacheItemPoolInterface
      * Deletes all items in the pool.
      *
      * @return bool
-     *   True if the pool was successfully cleared. False if there was an error.
+     *              True if the pool was successfully cleared. False if there was an error.
      */
     public function clear()
     {
         $this->_queue = [];
         $this->_cache->clean();
+
         return true;
     }
 
@@ -154,42 +156,45 @@ class CacheItemPool implements CacheItemPoolInterface
      * Removes the item from the pool.
      *
      * @param string $key
-     *   The key for which to delete
+     *                    The key for which to delete
      *
      * @throws InvalidArgumentException
-     *   If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
-     *   MUST be thrown.
+     *                                  If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
+     *                                  MUST be thrown.
      *
      * @return bool
-     *   True if the item was successfully removed. False if there was an error.
+     *              True if the item was successfully removed. False if there was an error.
      */
     public function deleteItem($key)
     {
         Utility::validateKey($key);
 
-        if( isset($this->_queue[$key])) {
+        if (isset($this->_queue[$key])) {
             unset($this->_queue[$key]);
         }
 
         $this->_cache->delete($key);
+
         return true;
     }
     /**
      * Removes multiple items from the pool.
      *
      * @param array $keys
-     *   An array of keys that should be removed from the pool.
+     *                    An array of keys that should be removed from the pool.
+     *
      * @throws InvalidArgumentException
-     *   If any of the keys in $keys are not a legal value a \Psr\Cache\InvalidArgumentException
-     *   MUST be thrown.
+     *                                  If any of the keys in $keys are not a legal value a \Psr\Cache\InvalidArgumentException
+     *                                  MUST be thrown.
      *
      * @return bool
-     *   True if the items were successfully removed. False if there was an error.
+     *              True if the items were successfully removed. False if there was an error.
      */
     public function deleteItems(array $keys)
     {
-        foreach ($keys as $key)
+        foreach ($keys as $key) {
             Utility::validateKey($key);
+        }
 
         foreach ($keys as $key) {
             $this->_cache->delete($key);
@@ -203,18 +208,19 @@ class CacheItemPool implements CacheItemPoolInterface
      * Persists a cache item immediately.
      *
      * @param CacheItemInterface $item
-     *   The cache item to save.
+     *                                 The cache item to save.
      *
      * @return bool
-     *   True if the item was successfully persisted. False if there was an error.
+     *              True if the item was successfully persisted. False if there was an error.
      */
     public function save(CacheItemInterface $item)
     {
-        if( !$item instanceof CacheItem)
+        if (!$item instanceof CacheItem) {
             return false;
+        }
 
         // remove from queue
-        if( isset($this->_queue[$item->getKey()])) {
+        if (isset($this->_queue[$item->getKey()])) {
             unset($this->_queue[$item->getKey()]);
         }
 
@@ -223,8 +229,9 @@ class CacheItemPool implements CacheItemPoolInterface
 
         // delete an expired item
         $expiry = $cacheItem->getExpiry();
-        if( $expiry !== 0 && $expiry < time()) {
+        if ($expiry !== 0 && $expiry < time()) {
             $this->deleteItem($cacheItem->getKey());
+
             return true;
         }
 
@@ -241,16 +248,16 @@ class CacheItemPool implements CacheItemPoolInterface
      * Sets a cache item to be persisted later.
      *
      * @param CacheItemInterface $item
-     *   The cache item to save.
+     *                                 The cache item to save.
      *
      * @return bool
-     *   False if the item could not be queued or if a commit was attempted and failed. True otherwise.
+     *              False if the item could not be queued or if a commit was attempted and failed. True otherwise.
      */
     public function saveDeferred(CacheItemInterface $item)
     {
         /** @var CacheItem $cacheItem */
         $cacheItem = $item;
-        if( $cacheItem->getExpiry() !== 0 && $cacheItem->getExpiry() < time()) {
+        if ($cacheItem->getExpiry() !== 0 && $cacheItem->getExpiry() < time()) {
             return true;
         }
 
@@ -262,11 +269,11 @@ class CacheItemPool implements CacheItemPoolInterface
         $cacheItem->setState(CacheItemState::DEFERRED);
 
         // any deferred value saved?
-        if( $cacheItem->isProbablyDeferredValueSet()) {
+        if ($cacheItem->isProbablyDeferredValueSet()) {
             $cacheItem->setValue($cacheItem->getDeferredValue());
             $cacheItem->setProbablyDeferredValueSet(false);
         }
-        
+
         return true;
     }
 
@@ -274,7 +281,7 @@ class CacheItemPool implements CacheItemPoolInterface
      * Persists any deferred cache items.
      *
      * @return bool
-     *   True if all not-yet-saved items were successfully saved or there were none. False otherwise.
+     *              True if all not-yet-saved items were successfully saved or there were none. False otherwise.
      */
     public function commit()
     {
@@ -287,12 +294,10 @@ class CacheItemPool implements CacheItemPoolInterface
     }
 
     /**
-     * commit queued items
+     * commit queued items.
      */
-    function __destruct()
+    public function __destruct()
     {
         $this->commit();
     }
-
-
 }

@@ -4,7 +4,6 @@ namespace Lean\Cache;
 
 class InvalidArgumentException extends CacheException implements \Psr\Cache\InvalidArgumentException
 {
-
     /**
      * InvalidArgumentException constructor.
      */
