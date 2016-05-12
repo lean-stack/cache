@@ -13,6 +13,6 @@ class CacheItemPoolIntegrationTest extends CachePoolTest
      */
     public function createCachePool()
     {
-        return new CacheItemPool(['storage' => 'auto', 'path' => dirname(dirname(__DIR__)).'/.tmp/']);
+        return new CacheItemPool(['storage' => 'memcached', 'path' => dirname(dirname(__DIR__)).'/.tmp/']);
     }
 }
