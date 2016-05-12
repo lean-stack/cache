@@ -2,6 +2,7 @@
 
 namespace Lean\Cache;
 
+use phpFastCache\CacheManager;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
@@ -21,6 +22,25 @@ use Psr\Cache\InvalidArgumentException;
  */
 class CacheItemPool implements CacheItemPoolInterface
 {
+    /** @var \phpFastCache\Core\DriverAbstract */
+    private $_cache;
+
+    /** @var CacheItem[] */
+    private $_queue = [];
+
+    /**
+     * CacheItemPool constructor.
+     *
+     * @param array $config
+     * @param string $method
+     */
+    public function __construct(array $config, $method = 'normal')
+    {
+        CacheManager::setup($config);
+        CacheManager::CachingMethod($method);
+        $this->_cache = CacheManager::getInstance();
+    }
+
     /**
      * Returns a Cache Item representing the specified key.
      *
@@ -39,9 +59,24 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
-        $this->ensureValidKey($key);
+        Utility::validateKey($key);
+
+        if( isset($this->_queue[$key])) {
+            return $this->_queue[$key];
+        }
+
+        $value = null;
+        $isHit = $this->_cache->isExisting($key);
+        if( $isHit ) {
+            $value = $this->_cache->get($key);
+            if( $value instanceof NullObject) $value = null;
+        }
 
         $item = new CacheItem();
+        $item->setKey($key);
+        $item->set($value);
+        $item->setIsHit($isHit);
+
         return $item;
     }
 
@@ -63,7 +98,15 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function getItems(array $keys = array())
     {
-        // TODO: Implement getItems() method.
+        foreach ($keys as $key) {
+            Utility::validateKey($key);
+        }
+
+        $items = [];
+        foreach ($keys as $key) {
+            $items[$key] = $this->getItem($key);
+        }
+        return $items;
     }
 
     /**
@@ -85,7 +128,13 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function hasItem($key)
     {
-        // TODO: Implement hasItem() method.
+        Utility::validateKey($key);
+
+        if( isset($this->_queue[$key])) {
+            return true;
+        }
+
+        return $this->_cache->isExisting($key);
     }
 
     /**
@@ -96,7 +145,9 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function clear()
     {
-        // TODO: Implement clear() method.
+        $this->_queue = [];
+        $this->_cache->clean();
+        return true;
     }
 
     /**
@@ -114,23 +165,38 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function deleteItem($key)
     {
-        // TODO: Implement deleteItem() method.
+        Utility::validateKey($key);
+
+        if( isset($this->_queue[$key])) {
+            unset($this->_queue[$key]);
+        }
+
+        $this->_cache->delete($key);
+        return true;
     }
     /**
- * Removes multiple items from the pool.
- *
- * @param array $keys
- *   An array of keys that should be removed from the pool.
- * @throws InvalidArgumentException
- *   If any of the keys in $keys are not a legal value a \Psr\Cache\InvalidArgumentException
- *   MUST be thrown.
- *
- * @return bool
- *   True if the items were successfully removed. False if there was an error.
- */
+     * Removes multiple items from the pool.
+     *
+     * @param array $keys
+     *   An array of keys that should be removed from the pool.
+     * @throws InvalidArgumentException
+     *   If any of the keys in $keys are not a legal value a \Psr\Cache\InvalidArgumentException
+     *   MUST be thrown.
+     *
+     * @return bool
+     *   True if the items were successfully removed. False if there was an error.
+     */
     public function deleteItems(array $keys)
     {
-        // TODO: Implement deleteItems() method.
+        foreach ($keys as $key)
+            Utility::validateKey($key);
+
+        foreach ($keys as $key) {
+            $this->_cache->delete($key);
+        }
+
+        // TODO: Spec is somewhat not clear. What to return if one item could not be deleted?
+        return true;
     }
 
     /**
@@ -144,7 +210,31 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
-        // TODO: Implement save() method.
+        if( !$item instanceof CacheItem)
+            return false;
+
+        // remove from queue
+        if( isset($this->_queue[$item->getKey()])) {
+            unset($this->_queue[$item->getKey()]);
+        }
+
+        /** @var CacheItem $cacheItem */
+        $cacheItem = $item;
+
+        // delete an expired item
+        $expiry = $cacheItem->getExpiry();
+        if( $expiry !== 0 && $expiry < time()) {
+            $this->deleteItem($cacheItem->getKey());
+            return true;
+        }
+
+        $this->_cache->set(
+            $item->getKey(),
+            $item->get() === null ? new NullObject() : $item->get(),
+            $expiry === 0 ? 0 : $expiry - time()
+        );
+
+        return true;
     }
 
     /**
@@ -158,7 +248,26 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function saveDeferred(CacheItemInterface $item)
     {
-        // TODO: Implement saveDeferred() method.
+        /** @var CacheItem $cacheItem */
+        $cacheItem = $item;
+        if( $cacheItem->getExpiry() !== 0 && $cacheItem->getExpiry() < time()) {
+            return true;
+        }
+
+        $this->_queue[$item->getKey()] = $item;
+
+        /** @var CacheItem $cacheItem */
+        $cacheItem = $item;
+        $cacheItem->setIsHit(true);
+        $cacheItem->setState(CacheItemState::DEFERRED);
+
+        // any deferred value saved?
+        if( $cacheItem->isProbablyDeferredValueSet()) {
+            $cacheItem->setValue($cacheItem->getDeferredValue());
+            $cacheItem->setProbablyDeferredValueSet(false);
+        }
+        
+        return true;
     }
 
     /**
@@ -169,18 +278,21 @@ class CacheItemPool implements CacheItemPoolInterface
      */
     public function commit()
     {
-        // TODO: Implement commit() method.
+        foreach ($this->_queue as $key => $item) {
+            $this->save($item);
+        }
+        $this->_queue = [];
+
+        return true;
     }
 
     /**
-     * Validates a given key according to the PSR-6 rules
-     *
-     * @param string $key
-     * @throws \Lean\Cache\InvalidArgumentException
+     * commit queued items
      */
-    private function ensureValidKey($key) {
-
-        if( !Utility::isKeyValid($key))
-            throw new \Lean\Cache\InvalidArgumentException('Invalid key');
+    function __destruct()
+    {
+        $this->commit();
     }
+
+
 }

@@ -4,6 +4,12 @@ namespace Lean\Cache;
 
 use Psr\Cache\CacheItemInterface;
 
+abstract class CacheItemState
+{
+    const IMMEDIATE = 0;
+    const DEFERRED = 1;
+}
+
 /**
  * Class CacheItem
  * @package Lean\Cache
@@ -12,6 +18,32 @@ use Psr\Cache\CacheItemInterface;
  */
 class CacheItem implements CacheItemInterface
 {
+    /**
+     * @internal
+     */
+    const CAST_PREFIX = '\0Lean\Cache\CacheItem\0';
+
+    /** @var string */
+    private $_key;
+
+    /** @var mixed */
+    private $_value;
+
+    /** @var mixed */
+    private $_isHit;
+
+    /** @var int Unix timestamp with expiry time */
+    private $_expiry = 0;
+
+    /** @var int CacheItemState */
+    private $_state = CacheItemState::IMMEDIATE;
+
+    /** @var bool  */
+    private $_probablyDeferredValueSet = false;
+
+    /** @var mixed */
+    private $_deferred_value = null;
+
     /**
      * Returns the key for the current cache item.
      *
@@ -23,7 +55,7 @@ class CacheItem implements CacheItemInterface
      */
     public function getKey()
     {
-        // TODO: Implement getKey() method.
+        return $this->_key;
     }
 
     /**
@@ -40,7 +72,7 @@ class CacheItem implements CacheItemInterface
      */
     public function get()
     {
-        // TODO: Implement get() method.
+        return $this->_value;
     }
 
     /**
@@ -54,7 +86,7 @@ class CacheItem implements CacheItemInterface
      */
     public function isHit()
     {
-        // TODO: Implement isHit() method.
+        return $this->_isHit;
     }
 
     /**
@@ -72,7 +104,14 @@ class CacheItem implements CacheItemInterface
      */
     public function set($value)
     {
-        // TODO: Implement set() method.
+        if( $this->_state === CacheItemState::DEFERRED) {
+            $this->_probablyDeferredValueSet = true;
+            $this->_deferred_value = $value;
+        } else {
+            $this->_value = $value;
+        }
+
+        return $this;
     }
 
     /**
@@ -86,10 +125,19 @@ class CacheItem implements CacheItemInterface
      *
      * @return static
      *   The called object.
+     *
+     * @throws InvalidArgumentException
      */
     public function expiresAt($expiration)
     {
-        // TODO: Implement expiresAt() method.
+        if( $expiration === null) {
+            $this->_expiry = 0;
+        } elseif ($expiration instanceof \DateTimeInterface) {
+            $this->_expiry = $expiration->getTimestamp();
+        } else {
+            throw new InvalidArgumentException('Invalid expiration time.');
+        }
+        return $this;
     }
 
     /**
@@ -101,12 +149,99 @@ class CacheItem implements CacheItemInterface
      *   expiration. If null is passed explicitly, a default value MAY be used.
      *   If none is set, the value should be stored permanently or for as long as the
      *   implementation allows.
-     *
-     * @return static
-     *   The called object.
+     * @return static The called object.
+     * The called object.
+     * @throws InvalidArgumentException
      */
     public function expiresAfter($time)
     {
-        // TODO: Implement expiresAfter() method.
+        if ($time === null) {
+            $this->_expiry = 0;
+        } elseif ($time instanceof \DateInterval){
+            $now = new \DateTime('now');
+            $this->_expiry = $now->add($time)->getTimestamp();
+        } elseif ( is_int($time)) {
+            $now = new \DateTime('now');
+            $this->_expiry = $now->modify('+'.$time.' sec')->getTimestamp();
+        } else {
+            throw new InvalidArgumentException('Invalid expiration time.');
+        }
+        return $this;
+    }
+
+    /**
+     * Returns the unix timestamp of the expiry
+     *
+     * @return int|null
+     */
+    public function getExpiry()
+    {
+        return $this->_expiry;
+    }
+
+    /**
+     * @param mixed $key
+     */
+    public function setKey($key)
+    {
+        $this->_key = $key;
+    }
+
+    /**
+     * Sets the hit state
+     *
+     * @param mixed $isHit
+     */
+    public function setIsHit($isHit)
+    {
+        $this->_isHit = $isHit;
+    }
+
+    /**
+     * @return int
+     */
+    public function getState()
+    {
+        return $this->_state;
+    }
+
+    /**
+     * @param int $state
+     */
+    public function setState($state)
+    {
+        $this->_state = $state;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isProbablyDeferredValueSet()
+    {
+        return $this->_probablyDeferredValueSet;
+    }
+
+    /**
+     * @param boolean $probablyDeferredValueSet
+     */
+    public function setProbablyDeferredValueSet($probablyDeferredValueSet)
+    {
+        $this->_probablyDeferredValueSet = $probablyDeferredValueSet;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDeferredValue()
+    {
+        return $this->_deferred_value;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    public function setValue($value)
+    {
+        $this->_value = $value;
     }
 }

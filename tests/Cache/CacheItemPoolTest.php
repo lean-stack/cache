@@ -8,26 +8,30 @@ use Psr\Cache\CacheItemPoolInterface;
 
 class CacheItemPoolTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var CacheItemPoolInterface
-     */
-    protected $pool;
+    /** @var CacheItemPoolInterface */
+    private $_pool;
 
     protected function setUp()
     {
-        $this->pool = new CacheItemPool();
+        $this->_pool = new CacheItemPool(['storage' => 'files', 'path' => dirname(dirname(__DIR__)) . '/.tmp/']);
     }
 
-
-    public function testItImplementsCacheItemPoolInterface()
+    public function testClassImplementsInterface()
     {
-        $this->assertInstanceOf(CacheItemPoolInterface::class, $this->pool);
+        $this->assertInstanceOf(CacheItemPoolInterface::class, $this->_pool);
     }
 
-    public function testGetItemReturnsCacheItemInterface()
+    public function testGetReturnsCacheItem()
     {
         $key = uniqid();
-        $item = $this->pool->getItem($key);
+        $item = $this->_pool->getItem($key);
         $this->assertInstanceOf(CacheItemInterface::class, $item);
+    }
+
+    public function testGetItemHasKey()
+    {
+        $key = uniqid();
+        $item = $this->_pool->getItem($key);
+        $this->assertEquals($key, $item->getKey());
     }
 }
