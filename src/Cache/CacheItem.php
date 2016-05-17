@@ -15,11 +15,6 @@ abstract class CacheItemState
  */
 class CacheItem implements CacheItemInterface
 {
-    /**
-     * @internal
-     */
-    const CAST_PREFIX = '\0Lean\Cache\CacheItem\0';
-
     /** @var string */
     private $_key;
 
@@ -128,11 +123,15 @@ class CacheItem implements CacheItemInterface
     public function expiresAt($expiration)
     {
         if ($expiration === null) {
+
             $this->_expiry = 0;
-        } elseif ($expiration instanceof \DateTimeInterface) {
-            $this->_expiry = $expiration->getTimestamp();
+
         } else {
-            throw new InvalidArgumentException('Invalid expiration time.');
+
+            if( !$expiration instanceof \DateTimeInterface)
+                throw new InvalidArgumentException('Invalid expiration time.');
+
+            $this->_expiry = $expiration->getTimestamp();
         }
 
         return $this;
@@ -157,15 +156,20 @@ class CacheItem implements CacheItemInterface
     {
         if ($time === null) {
             $this->_expiry = 0;
-        } elseif ($time instanceof \DateInterval) {
-            $now = new \DateTime('now');
-            $this->_expiry = $now->add($time)->getTimestamp();
-        } elseif (is_int($time)) {
-            $now = new \DateTime('now');
-            $this->_expiry = $now->modify('+'.$time.' sec')->getTimestamp();
-        } else {
-            throw new InvalidArgumentException('Invalid expiration time.');
+            return $this;
         }
+
+        if (is_int($time)) {
+            $now = new \DateTime('now');
+            $this->_expiry = $now->modify('+' . $time . ' sec')->getTimestamp();
+            return $this;
+        }
+
+        if (!$time instanceof \DateInterval)
+            throw new InvalidArgumentException('Invalid expiration time.');
+
+        $now = new \DateTime('now');
+        $this->_expiry = $now->add($time)->getTimestamp();
 
         return $this;
     }

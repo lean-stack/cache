@@ -23,7 +23,7 @@ class CacheItemPool implements CacheItemPoolInterface
     /** @var \phpFastCache\Core\DriverAbstract */
     private $_cache;
 
-    /** @var CacheItem[] */
+    /** @var CacheItem[] List of deferred cache items*/
     private $_queue = [];
 
     /**

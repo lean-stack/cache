@@ -3,6 +3,7 @@
 namespace Tests\Lean\Cache;
 
 use Lean\Cache\CacheItem;
+use Lean\Cache\InvalidArgumentException;
 
 class CacheItemTest extends \PHPUnit_Framework_TestCase
 {
@@ -39,6 +40,7 @@ class CacheItemTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expiry->getTimestamp(), $item->getExpiry());
     }
 
+
     public function testSettingExpirationInSeconds()
     {
         $expireInterval = new \DateInterval('PT60S');
@@ -49,5 +51,28 @@ class CacheItemTest extends \PHPUnit_Framework_TestCase
         $item->expiresAfter(60);
 
         $this->assertEquals($expiry->getTimestamp(), $item->getExpiry());
+    }
+
+    public function testSettingInvalidExpirationDate()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $item = new CacheItem();
+        $item->expiresAt('tomorrow');
+    }
+
+    public function testSettingForeverExpirationTime()
+    {
+        $item = new CacheItem();
+        $item->expiresAfter(null);
+        $this->assertEquals(0, $item->getExpiry());
+    }
+
+    public function testSettingInvalidExpirationTime()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $item = new CacheItem();
+        $item->expiresAfter('one minute');
     }
 }
