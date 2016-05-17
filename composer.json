@@ -1,27 +1,34 @@
 {
-    "name": "lean-stack/cache",
-    "description": "PSR-6 cache implementation",
-    "type": "library",
-    "license": "ISC",
-    "authors": [
-        {
-            "name": "Micha Alt",
-            "email": "lean@michael-alt.info"
-        }
-    ],
-    "provide": {
-        "psr/cache-implementation": "1.0.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "Lean\\Cache\\": "src"
-        }
-    },
-    "require": {
-        "psr/cache": "^1.0",
-        "phpfastcache/phpfastcache": "^3.0"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^4.8"
+  "name": "lean-stack/cache",
+  "description": "PSR-6 cache implementation",
+  "keywords": ["psr", "psr-6", "cache", "phpfastcache"],
+  "type": "library",
+  "license": "ISC",
+  "authors": [
+    {
+      "name": "Micha Alt",
+      "email": "mail@lean-stack.de"
     }
+  ],
+  "provide": {
+    "psr/cache-implementation": "1.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Lean\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\Lean\\": "tests"
+    }
+  },
+  "require": {
+    "psr/cache": "^1.0",
+    "phpfastcache/phpfastcache": "^4.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5.3",
+    "cache/integration-tests": "dev-master"
+  }
 }
